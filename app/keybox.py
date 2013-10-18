@@ -1,28 +1,39 @@
+import configparser
+import logging
+
 from flask import Flask
 from flaskext.xmlrpc import XMLRPCHandler, Fault
 from pymongo import MongoClient
 
+import tools
+
 from models import *
 
-app = Flask(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
+app = Flask(__name__)
 handler = XMLRPCHandler('api')
 handler.connect(app, '/api')
 
-#----------------------------------------
-# database
-#----------------------------------------
-
-DB_NAME = 'keybox'
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 client = MongoClient()
-client = MongoClient('mongodb://admin:admin@localhost:27017/')
-db = client[DB_NAME]
+
+try:
+    client = MongoClient(tools.composeDB(config['Database']))
+except:
+    logger.error('Error connecting to DB: %s' % tools.composeDB(config['Database']))
+
+db = client[config['Database']['DB_NAME']]
 
 @handler.register
 def welcome(username=False):
-	if not username:
-		raise Fault("unknown_user", "I don't know you!")
+    logger.debug("Welcome called")
+
+    if not username:
+        raise Fault("unknown_user", "I don't know you!")
 
 	users = db.users
 	found = users.find_one({'name': username})
@@ -30,6 +41,19 @@ def welcome(username=False):
 		return "E-mail: %s" % found['email']
 	else: 
 		return "No results found."
+
+@handler.register
+def createUser(username, password, email):
+    new = User(username, password, email).asDict()
+    u = db.User
+
+    if not u.find_one({'username': username}):
+        try:
+            uid = u.insert(new)
+        except ValueError:
+            return "Error saving."
+    else:
+        return "Username exists."
 
 @handler.register
 def savePassword(owner, username, password):
@@ -42,4 +66,5 @@ def savePassword(owner, username, password):
 	except ValueError:	
 		return "Error saving."
 
-app.run()
+if __name__ == '__main__':
+    app.run()
