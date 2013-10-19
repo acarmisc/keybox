@@ -74,12 +74,10 @@ def getPassword(key, owner):
     
     pwds = db.storedPassword
     items = pwds.find({'key': key,'owner': owner})
-    for i in items:
-        print i
+    for i in items:        
         res.extend([{'username': i['username'], 
                     'password': i['password']}])
     
-    print res
     return res
 
 if __name__ == '__main__':
