@@ -56,8 +56,8 @@ def createUser(username, password, email):
         return "Username exists."
 
 @handler.register
-def savePassword(owner, username, password):
-	new = storedPassword(owner, username, password).asDict()
+def savePassword(owner, key, username, password):
+	new = storedPassword(owner, key, username, password).asDict()
 	pwd = db.storedPassword	
 	
 	try:
@@ -65,6 +65,14 @@ def savePassword(owner, username, password):
 		return "Saved."
 	except ValueError:	
 		return "Error saving."
+
+@handler.register
+def getPassword(key, username, password):
+    logger.debug("%s ask for a password" % username)
+
+    pwds = db.storedPassword
+    pwds = pwds.find({'key': key})
+    return pwds
 
 if __name__ == '__main__':
     app.run()
