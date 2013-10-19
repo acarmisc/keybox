@@ -67,12 +67,20 @@ def savePassword(owner, key, username, password):
 		return "Error saving."
 
 @handler.register
-def getPassword(key, username, password):
-    logger.debug("%s ask for a password" % username)
+def getPassword(key, owner):
+    logger.debug("%s ask for a password" % owner)
 
+    res = []
+    
     pwds = db.storedPassword
-    pwds = pwds.find({'key': key})
-    return pwds
+    items = pwds.find({'key': key,'owner': owner})
+    for i in items:
+        print i
+        res.extend([{'username': i['username'], 
+                    'password': i['password']}])
+    
+    print res
+    return res
 
 if __name__ == '__main__':
     app.run()
