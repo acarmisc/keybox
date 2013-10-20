@@ -1,84 +1,104 @@
 import configparser
 import logging
 
-from flask import Flask
+from flask import Flask, session
 from flaskext.xmlrpc import XMLRPCHandler, Fault
+
 from pymongo import MongoClient
 
 import tools
-
 from models import *
 
-logging.basicConfig(level=logging.DEBUG)
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 handler = XMLRPCHandler('api')
 handler.connect(app, '/api')
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-client = MongoClient()
-
-try:
-    client = MongoClient(tools.composeDB(config['Database']))
-except:
-    logger.error('Error connecting to DB: %s' % tools.composeDB(config['Database']))
-
+client = MongoClient(tools.composeDB(config['Database']))
 db = client[config['Database']['DB_NAME']]
 
+
 @handler.register
-def welcome(username=False):
-    logger.debug("Welcome called")
+def login(username, password):
+    logger.info('Login attempt by %s', username)
+    res = User.login(db, username, password)
+    if not res:
+        logger.debug('Login failed for %s', username)
+        return False
+    else:
+        logger.debug('Login success for %s', username)
+        session['username'] = username        
+        return User.simplify(res)
 
-    if not username:
-        raise Fault("unknown_user", "I don't know you!")
+@handler.register
+def welcome(username='nobody'):
+    logger.info('Server test by %s', username)
+    res = "Welcome %s! Server is online!" % username
+    return res
 
-	users = db.users
-	found = users.find_one({'name': username})
-	if found:
-		return "E-mail: %s" % found['email']
-	else: 
-		return "No results found."
+""" 
+USERS
+
+"""
 
 @handler.register
 def createUser(username, password, email):
-    new = User(username, password, email).asDict()
-    u = db.User
+    logger.debug('Creating %s as user', username)
+    data = {
+        'username': username,
+        'password': password,
+        'email': email
+    }
 
-    if not u.find_one({'username': username}):
-        try:
-            uid = u.insert(new)
-        except ValueError:
-            return "Error saving."
-    else:
-        return "Username exists."
+    try:
+        res = User.create(db, data)
+        logger.debug('User %s created', username)
+    except Exception:
+        logger.debug('User %s creation failed', username)
+        return False
+    return True
+
+"""
+CREDENTIALS
+"""
 
 @handler.register
-def savePassword(owner, key, username, password):
-	new = storedPassword(owner, key, username, password).asDict()
-	pwd = db.storedPassword	
+def saveCredential(data):
+
+    logger.debug('Creating new credential')
+    try:
+        res = Credential.create(db, data)
+        logger.debug('New credential created')
+    except Exception:
+        logger.debug('New credential creation failed')
+        return False
+    return True
 	
-	try:
-		stored_id = pwd.insert(new)
-		return "Saved."
-	except ValueError:	
-		return "Error saving."
-
 @handler.register
-def getPassword(key, owner):
-    logger.debug("%s ask for a password" % owner)
+def getPassword(title, owner):
+    print title, owner
+    logger.info('Getting password for %s', owner)
+    creds = Credential.lookup(db, title, owner)
+
+    print creds
 
     res = []
-    
-    pwds = db.storedPassword
-    items = pwds.find({'key': key,'owner': owner})
-    for i in items:        
-        res.extend([{'username': i['username'], 
-                    'password': i['password']}])
-    
-    return res
 
-if __name__ == '__main__':
+    if not creds:
+        logger.debug('No credential with title %s found', title)
+        return False
+    else:
+        logger.debug('Credential found for %s', owner)
+        for c in creds:            
+            res.extend(Credential.simplify(c))
+
+        return res
+
+if __name__ == '__main__':    
+    app.secret_key = '0m1@b3l@.m@dun1n@.ch3.t3.br1l1.d@#lunt@n'
     app.run()

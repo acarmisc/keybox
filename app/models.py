@@ -1,34 +1,92 @@
-import datetime
+class Env():
+    def initDb():
+        #TODO: create database with base data
+        pass
 
-class storedPassword():
+class Credential():
+    def __init__(self):
+        self.title = ''
+        self.username = ''
+        self.password = ''
+        self.url = ''
+        self.note = ''
+        self.owner = ''
 
-    def __init__(self, owner, key, username, password):
-        self.owner = owner
-        self.key = key
-        self.username = username
-        self.password = password
-
-	def getPassword(self):
-		return self.password
-
+    @staticmethod
     def asDict(self):
-        mdict = {'owner': self.owner,
-                'key': self.key,
+        mdict = {
+                'title': self.title,
                 'username': self.username,
-                'password': self.password}
+                'password': self.password,
+                'url': self.url,
+                'note': self.note,
+                'owner': self.owner
+        }
 
         return mdict
+
+    @staticmethod
+    def simplify(credential):
+        print credential
+        mdict = {
+                'title' : credential['title'],
+                'username' : credential['username'],
+                'password' : credential['password'],
+                'url': credential['url'],
+                'note': credential['note'],                
+                }
+        return mdict
+
+    @staticmethod
+    def create(db, data):
+        collection = db.Credential
+        
+        res = collection.insert(data)
+        return res
+
+    @staticmethod
+    def lookup(db, title, owner):
+        collection = db.Credential
+        res = collection.find({'title': title, 'owner': owner})
+        return res
 
 class User():
-    
-    def __init__(self, username, password, email):
-        self.username = username
-        self.password = username
-        self.email = email
+    def __init__(self):
+        self.username = ''
+        self.password = ''
+        self.email = ''
 
+    @staticmethod
     def asDict(self):
-        mdict = {'username': self.username,
+        mdict = {
+                'username': self.username,
                 'password': self.password,
-                'email': self.email}
+                'email': self.email
+                }
 
         return mdict
+
+    @staticmethod
+    def simplify(user):
+        mdict = {
+                'username' : user['username'],
+                'password' : user['password'],
+                'email' : user['password']
+                }
+        return mdict
+
+    @staticmethod
+    def login(db, username, password):
+        collection = db.User
+        res = collection.find_one({'username': username, 'password': password})
+        return res
+
+    @staticmethod
+    def create(db, data):
+        collection = db.User
+        found = collection.find_one({'username': data['username'], 'password': data['password']})
+        if found:
+            return False
+        else:
+            res = collection.insert(data)
+        return res
