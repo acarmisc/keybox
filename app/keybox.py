@@ -81,11 +81,8 @@ def saveCredential(data):
 	
 @handler.register
 def getPassword(title, owner):
-    print title, owner
     logger.info('Getting password for %s', owner)
     creds = Credential.lookup(db, title, owner)
-
-    print creds
 
     res = []
 
