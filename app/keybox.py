@@ -92,7 +92,7 @@ def getPassword(title, owner):
     else:
         logger.debug('Credential found for %s', owner)
         for c in creds:            
-            res.extend(Credential.simplify(c))
+            res.extend([Credential.simplify(c)])
 
         return res
 

@@ -27,7 +27,6 @@ class Credential():
 
     @staticmethod
     def simplify(credential):
-        print credential
         mdict = {
                 'title' : credential['title'],
                 'username' : credential['username'],
