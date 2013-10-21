@@ -10,7 +10,7 @@ current = {}
 while not current:
 
 	# testing arguments
-	if sys.argv:
+	if len(sys.argv) > 1:
 		test_user = sys.argv[1]
 		test_pass = sys.argv[2]
 	else:
@@ -29,20 +29,20 @@ while True:
 	print "[%s] debug dump" % colorize("8", 'blue')
 	print "[%s] test server" % colorize("9", 'blue')
 	print "[%s] initialize DB" % colorize("0", 'blue')
-	choose = input("Select an option: ")
+	choose = raw_input("Select an option: ")
 
-	if choose == 0:
+	if choose == '0':
 		name = raw_input("New DB name: ")
 		print "TODO"
 
-	elif choose == 8:
+	elif choose == '8':
 		print current
 
-	elif choose == 9:
+	elif choose == '9':
 		username = raw_input("Insert your username: ")
 		print server.welcome(username)
 	
-	elif choose == 1:
+	elif choose == '1':
 		username = raw_input("Insert new username: ")
 		password = raw_input("Insert password: ")
 		email = raw_input("Insert e-mail: ")
@@ -54,7 +54,7 @@ while True:
 		else:
 			print "User created"
 		
-	elif choose == 2:
+	elif choose == '2':
 		print "creating..."
 		owner = current['username']
 		title = raw_input("Select a name for this item: ")
@@ -79,7 +79,8 @@ while True:
 		else:
 			print colorize("Credential created",'green')
 
-	elif choose == 3:
+	elif choose == '3':
+        #TODO: return keys and not values!!!
 		owner = current['username']
 		title = raw_input("Item title: ")
 
