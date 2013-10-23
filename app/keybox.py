@@ -96,6 +96,33 @@ def getPassword(title, owner):
 
         return res
 
+@handler.register
+def updatePassword(title, owner, data):
+    logger.info('Updatting password for %s', owner)
+
+    creds = Credential.lookup(db, title, owner)
+
+    # FIXME: this cycle must look better!
+    if creds:
+        for c in creds:
+            for k in data.keys():
+                if data[k] == '' or data[k] == False: 
+                    data[k] = c[k]        
+            
+            data['_id'] = c['_id']
+
+        creds = Credential.update(db, data)
+        
+        if not creds:
+            logger.debug("Problem during credential with title %s update" % title)
+            return False
+        else:
+            logger.debug("Successfully updated credential with title %s" % title)
+            return True
+    else:
+        logger.debug("No credential with title %s found during update" % title)
+        return False
+
 if __name__ == '__main__':    
     app.secret_key = '0m1@b3l@.m@dun1n@.ch3.t3.br1l1.d@#lunt@n'
     app.run()

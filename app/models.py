@@ -44,9 +44,22 @@ class Credential():
         return res
 
     @staticmethod
+    def update(db, data):
+        collection = db.Credential    
+        
+        if collection.update({'_id': data['_id']}, data):
+            return True
+        else:
+            return False
+
+    @staticmethod
     def lookup(db, title, owner):
         collection = db.Credential
-        res = collection.find({'title': title, 'owner': owner})
+        if not title:
+            params = {'owner': owner}
+        else:
+            params = {'title': title, 'owner': owner}
+        res = collection.find(params)
         return res
 
 class User():
