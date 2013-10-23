@@ -22,6 +22,9 @@ handler.connect(app, '/api')
 client = MongoClient(tools.composeDB(config['Database']))
 db = client[config['Database']['DB_NAME']]
 
+"""
+USERS
+"""
 
 @handler.register
 def login(username, password):
