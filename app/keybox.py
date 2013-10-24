@@ -4,6 +4,8 @@ import logging
 from flask import Flask, session
 from flaskext.xmlrpc import XMLRPCHandler, Fault
 
+from flask import render_template
+
 from pymongo import MongoClient
 
 import tools
@@ -126,6 +128,11 @@ def updatePassword(title, owner, data):
         logger.debug("No credential with title %s found during update" % title)
         return False
 
+@app.route('/hello/')
+def hello():
+    return render_template('index.html')
+
 if __name__ == '__main__':    
     app.secret_key = '0m1@b3l@.m@dun1n@.ch3.t3.br1l1.d@#lunt@n'
     app.run()
+

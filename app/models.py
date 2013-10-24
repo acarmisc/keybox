@@ -1,3 +1,6 @@
+import hashlib
+m = hashlib.md5()
+
 class Env():
     def initDb():
         #TODO: create database with base data
@@ -90,12 +93,16 @@ class User():
     @staticmethod
     def login(db, username, password):
         collection = db.User
+        password = m.update(password)
+        password = m.hexdigest()
         res = collection.find_one({'username': username, 'password': password})
         return res
 
     @staticmethod
     def create(db, data):
         collection = db.User
+        data['password'] = m.update(data['password'])
+        data['password'] = m.hexdigest()
         found = collection.find_one({'username': data['username'], 'password': data['password']})
         if found:
             return False
