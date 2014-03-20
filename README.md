@@ -14,6 +14,16 @@ It's pretty simple to get up and running, follow theese steps:
 
 NOTE: if some packages are missing you can retrieve theme by using the `requirements.txt` included typing something like `pip install -r requirements.txt`
 
+Run the app
+-----------
+
+Run ``python keybox.py`` inside ``app/`` folder.
+
+Run the client
+--------------
+
+Run ``python client.py`` inside ``client/`` folder.
+
 TODO
 --------------
 A lot of things actually... the first one if you like to use it is crypt and decrypt for password stored in the DB. Hope to do it quickly!

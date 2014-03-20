@@ -1,20 +1,17 @@
 import configparser
 import logging
-
-from flask import Flask, session
-from flaskext.xmlrpc import XMLRPCHandler, Fault
-
-from flask import render_template
-
-from pymongo import MongoClient
-
 import tools
+import sys
+from flask import Flask, session, render_template
+from flaskext.xmlrpc import XMLRPCHandler, Fault
+from pymongo import MongoClient
 from models import *
 
-config = configparser.ConfigParser()
-config.read('config.ini')
 
-logging.basicConfig(level=logging.INFO)
+config = configparser.ConfigParser()
+config.read('config-test.ini')
+
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -28,6 +25,7 @@ db = client[config['Database']['DB_NAME']]
 USERS
 """
 
+
 @handler.register
 def login(username, password):
     logger.info('Login attempt by %s', username)
@@ -37,8 +35,9 @@ def login(username, password):
         return False
     else:
         logger.debug('Login success for %s', username)
-        session['username'] = username        
+        session['username'] = username
         return User.simplify(res)
+
 
 @handler.register
 def welcome(username='nobody'):
@@ -46,10 +45,11 @@ def welcome(username='nobody'):
     res = "Welcome %s! Server is online!" % username
     return res
 
-""" 
+"""
 USERS
 
 """
+
 
 @handler.register
 def createUser(username, password, email):
@@ -72,6 +72,7 @@ def createUser(username, password, email):
 CREDENTIALS
 """
 
+
 @handler.register
 def saveCredential(data):
 
@@ -83,7 +84,8 @@ def saveCredential(data):
         logger.debug('New credential creation failed')
         return False
     return True
-	
+
+
 @handler.register
 def getPassword(title, owner):
     logger.info('Getting password for %s', owner)
@@ -96,10 +98,11 @@ def getPassword(title, owner):
         return False
     else:
         logger.debug('Credential found for %s', owner)
-        for c in creds:            
+        for c in creds:
             res.extend([Credential.simplify(c)])
 
         return res
+
 
 @handler.register
 def updatePassword(title, owner, data):
@@ -111,13 +114,13 @@ def updatePassword(title, owner, data):
     if creds:
         for c in creds:
             for k in data.keys():
-                if data[k] == '' or data[k] == False: 
-                    data[k] = c[k]        
-            
+                if data[k] == False or '':
+                    data[k] = c[k]
+
             data['_id'] = c['_id']
 
         creds = Credential.update(db, data)
-        
+
         if not creds:
             logger.debug("Problem during credential with title %s update" % title)
             return False
@@ -128,11 +131,11 @@ def updatePassword(title, owner, data):
         logger.debug("No credential with title %s found during update" % title)
         return False
 
+
 @app.route('/hello/')
 def hello():
     return render_template('index.html')
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     app.secret_key = '0m1@b3l@.m@dun1n@.ch3.t3.br1l1.d@#lunt@n'
     app.run()
-
